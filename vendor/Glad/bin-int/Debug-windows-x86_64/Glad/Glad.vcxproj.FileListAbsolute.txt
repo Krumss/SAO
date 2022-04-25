@@ -1,0 +1,2 @@
+D:\Github\SAO\vendor\Glad\bin\Debug-windows-x86_64\Glad\Glad.pdb
+D:\Github\SAO\vendor\Glad\bin-int\Debug-windows-x86_64\Glad\Glad.pdb
