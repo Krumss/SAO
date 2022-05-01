@@ -78,6 +78,8 @@ void Game::ProcessInput(GLFWwindow *window, float dt)
 void Game::Render()
 {
     Texture2D texture = ResourceManager::GetTexture("tiles");
+    Texture2D a = ResourceManager::GetTexture("mario");
+    Renderer->DrawSprite(a, glm::vec2(1000.0f, 40.0f), glm::vec2(40.0f, 40.0f));
     glm::mat4 view = camera->GetViewMatrix();
     ResourceManager::GetShader("sprite").SetMatrix4("view", view);
     for (int i = 0; i < 20; i++)

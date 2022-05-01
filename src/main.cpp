@@ -74,6 +74,31 @@ int main(int argc, char *argv[])
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+    unsigned int framebuffer;
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    // create a color attachment texture
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindRenderbuffer(GL_RENDERBUFFER, 0); 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+
     while (!glfwWindowShouldClose(window))
     {
         // calculate delta time
@@ -91,28 +116,48 @@ int main(int argc, char *argv[])
         // -----------------
         Breakout.Update(deltaTime);
 
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+
 		ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
 		static bool show = true;
-		ImGui::ShowDemoWindow(&show);
 
-        ImGui::Begin("Demo window");
-        ImGui::Button("Hello!");
-        ImGui::SliderFloat("X", &Breakout.gameObjects[0].position.x, 0.0f, 600.0f);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Breakout.Render();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        ImGui::Begin("GameWindow");
+        {
+            //get the mouse position
+            ImGui::BeginChild("GameRender");
+            //pass the texture of the FBO
+            //window.getRenderTexture() is the texture of the FBO
+            //the next parameter is the upper left corner for the uvs to be applied at
+            //the third parameter is the lower right corner
+            //the last two parameters are the UVs
+            //they have to be flipped (normally they would be (0,0);(1,1) 
+            ImGui::Image((ImTextureID)texture, ImVec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::EndChild();
+        }
         ImGui::End();
-
-        content.OnImGuiRender();
-
+        ImGui::Begin("control");
+        {
+            float fps = 1/deltaTime;
+            std::string fpsString = std::to_string(fps);
+            ImGui::Text(fpsString.c_str());
+        }
+        ImGui::End();
         // render
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        Breakout.Render();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
         glfwSwapBuffers(window);
     }

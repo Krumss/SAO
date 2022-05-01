@@ -1,2 +1,5 @@
-﻿  contentBrowserPanel.cpp
+﻿  main.cpp
+D:\Github\SAO\vendor\GLFW\include\GLFW\glfw3.h(3167,1): warning C4819: The file contains a character that cannot be represented in the current code page (950). Save the file in Unicode format to prevent data loss
+D:\Github\SAO\src\main.cpp(106,28): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Github\SAO\src\main.cpp(142,46): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
   SAO.vcxproj -> D:\Github\SAO\bin\Debug-windows-x86_64\SAO\SAO.exe
